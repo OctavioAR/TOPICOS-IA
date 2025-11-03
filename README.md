@@ -13,3 +13,7 @@ Repositorio de proyectos de la materia de Tópicos de IA
 ## Este proyecto se encuentran en la carpeta de la UNIDAD 2: 
 ### Proyecto de Optimización de Rutas: 
 - **Descripción:** Este proyecto se desarrolló aplicando el conocimiento de los algoritmos metaheurísticos en la resolución de problemas, para el proyecto de utilizó Recocido Simulado (Carpeta: PROYECTO RUTAS).
+
+## Este proyecto se encuentran en la carpeta de la UNIDAD 3: 
+### Proyecto de Optimización de Riego con Enjambre de Partículas: 
+- **Descripción:** Este proyecto se desarrolló aplicando el conocimiento del algoritmo bioinspirado PSO para la optimización de riego de cultivos. (Carpeta: PROYECTO CULTIVOS).

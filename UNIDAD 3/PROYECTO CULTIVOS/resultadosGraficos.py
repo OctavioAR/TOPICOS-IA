@@ -5,11 +5,29 @@ import numpy as np
 
 # clase para graficar resultados de la optimizacion
 class ResultadosGraficos:
+    """
+    Funcion:
+        logica para generar visualizaciones graficas de los resultados
+        de la optimizacion
+    """
     # constructor que recibe los datos de cultivos
     def __init__(self, datos_cultivos):
+        """
+        Funcion:
+            Inicializa el visualizador con los datos de los cultivos
+
+        Argumentos:
+            datos_cultivos (pd.DataFrame): DataFrame que contiene la informacion de los cultivos
+        """
         self.datos_cultivos = datos_cultivos
+    
     # metodo para graficar la cobertura de sensores
     def cobertura_sensores(self, enjambre, num_sensores, radio_cobertura):
+        """
+        Funcion:
+            genera y muestra un grafico de dispersión que visualiza la posicion de los cultivos,
+            la ubicacion optima de los sensores encontrada por el PSO y su radio de cobertura.
+        """
         print("\nGenerando visualización de resultados...")
         
         plt.figure(figsize=(12, 6))

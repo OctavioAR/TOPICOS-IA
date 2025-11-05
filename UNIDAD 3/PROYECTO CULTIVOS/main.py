@@ -7,6 +7,11 @@ from resultadosGraficos import ResultadosGraficos
 from configuracion import ConfiguracionPSO
 
 def main():
+    """
+    Funcion:
+        Ejecuta todo el proceso de optimizacion carga la configuración y los datos
+        inicializa y ejecuta el algoritmo PSO y muestra y visualiza los resultados
+    """
     # cargar configuracion
     config = ConfiguracionPSO()
     config.mostrar_configuracion()

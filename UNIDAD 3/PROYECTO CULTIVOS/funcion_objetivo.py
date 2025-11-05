@@ -3,6 +3,22 @@ import pandas as pd
 
 # FO que conbina cobertura geografica y calidad agricola
 def funcion_objetivo(posicion_completa, datos_cultivos, num_sensores, radio_cobertura):
+    """
+    Funcion:
+        calcula el valor de aptitud "costo" para una configuracion de sensores.
+        El costo es una combinacion de la distancia promedio a los cultivos, una penalizacion
+        por cultivos no cubiertos y costos relacionados con la calidad agricola (diversidad,
+        variabilidad de humedad, etc.). Un valor mas bajo es mejor
+
+    Argumentos:
+        posicion_completa (list): un vector con las coordenadas (lat, lon) de todos los sensores
+        datos_cultivos (pd.DataFrame): DataFrame con los datos de los cultivos
+        num_sensores (int): el numero de sensores en la configuracion
+        radio_cobertura (float): el radio de cobertura de cada sensor
+
+    Regresa: 
+        float: el costo total (aptitud) de la configuracion de sensores
+    """
     
     # convertir posicion plana a matriz de posiciones de sensores
     posiciones_sensores = np.array(posicion_completa).reshape(num_sensores, 2)

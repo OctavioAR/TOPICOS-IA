@@ -1,9 +1,25 @@
 import numpy as np
 from particula import Particula
-# Clase enjambre que maneja el conjunto de particulas y logica del PSO
+
 class Enjambre:
+    """
+    Funcion:
+        gestiona el conjunto de particulas y la logica principal del algoritmo PSO
+        se encarga de inicializar, iterar y encontrar la mejor solucion global
+    """
     # metodo constructor de la clase enjambre    
     def __init__(self, num_particulas, funcion_objetivo, limites_posicion, limites_velocidad, **param_extra):
+        """
+        Funcion:
+            Inicializa el enjambre
+
+        Argumentos:
+            num_particulas (int): numero de particulas en el enjambre
+            funcion_objetivo (function): la funcion a minimizar
+            limites_posicion (list): limites del espacio de búsqueda para la posicion
+            limites_velocidad (list): limites para la velocidad de las particulas
+            **param_extra: argumentos adicionales para la funcion objetivo
+        """
         self.num_particulas = num_particulas
         self.funcion_objetivo = funcion_objetivo
         self.limites_posicion = limites_posicion
@@ -27,6 +43,14 @@ class Enjambre:
 
     # metodo para inicializar el enjambre de particulas    
     def inicializar_enjambre(self):
+        """
+        Funcion:
+            crea y inicializa todas las particulas del enjambre con posiciones y velocidades
+            aleatorias dentro de los limites definidos. Evalua la aptitud inicial de cada una
+
+        Argumentos:
+            ninguno
+        """
         print(f"Inicializando enjambre con {self.num_particulas} particulas...")
         
         # crea particulas con posiciones y velocidades aleatorias
@@ -56,6 +80,18 @@ class Enjambre:
     
     # metodo para iniciar las iteraciones del PSO
     def iteraciones_PSO(self, iteracion):
+        """
+        Funcion:
+            ejecuta una unica iteracion del algoritmo PSO. Actualiza la velocidad y posicion
+            de cada particula, evalua su nueva aptitud y actualiza las mejores posiciones
+            personales y globales
+
+        Argumentos:
+            iteracion (int): el numero de la iteracion actual
+
+        Regresa: 
+            int: el numero de particulas que mejoraron su aptitud personal en esta iteracion
+        """
         mejoras_esta_iteracion = 0
         
         # actualizar cada particula
@@ -109,6 +145,18 @@ class Enjambre:
         return mejoras_esta_iteracion
     # metodo para ejecutar la optimizacion completa del PSO
     def optimizar(self, max_iteraciones, verbose=True):
+        """
+        Funcion:
+            ejecuta el proceso completo de optimizacion PSO durante un numero maximo de iteraciones
+
+        Argumentos:
+            max_iteraciones (int): el numero total de iteraciones a ejecutar
+            verbose (bool): si es True imprime el progreso en la consola
+
+        Regresa: 
+            tuple: una tupla conteniendo la mejor posicion global encontrada mejor_posicion_global
+                   y su correspondiente valor de aptitud mejor_aptitud_global
+        """
 
         # inicializar enjambre si no ha sido creado
         if not self.particulas:
@@ -130,7 +178,13 @@ class Enjambre:
     
     # metodo para mostrar el estado actual del enjambre
     def mostrar_estado_enjambre(self):
-        """Muestra el estado actual de todas las particulas"""
+        """
+        Funcion:
+            muestra el estado actual de todas las particulas en la consola
+
+        Argumentos:
+            ninguno
+        """
         print(f"\n--- ESTADO ACTUAL DEL ENJAMBRE ---")
         print(f"Mejor global: Pos{self.mejor_posicion_global}, Apt={self.mejor_aptitud_global:.4f} ({self.num_particulas} particulas en total)")
         for particula in self.particulas:

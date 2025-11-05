@@ -1,7 +1,15 @@
-# clase para configurar los parametros del PSO y del problema
 class ConfiguracionPSO:
+    """
+    Funcion:
+        centraliza todos los parametros de configuracion para el problema de optimizacion
+        de sensores y el algoritmo PSO.
+    """
     
     def __init__(self):
+        """
+        Funcion:
+            inicializa la configuracion con valores predeterminados para el problema y el PSO
+        """
         # parametros del problema
         self.NUM_SENSORES = 4
         self.DIMENSIONES = self.NUM_SENSORES * 2
@@ -25,6 +33,17 @@ class ConfiguracionPSO:
     
     #metodo para obtener limites de posicion y velocidad
     def obtener_limites(self):
+        """
+        Funcion:
+            genera las listas de limites para la posicion y velocidad de las particulas,
+            basandose en el numero de sensores y los limites geograficos/velocidad definidos
+
+        Argumentos:
+            ninguno
+
+        Regresa: 
+            tuple: una tupla que contiener (limites_posicion, limites_velocidad)
+        """
         limites_posicion = []
         limites_velocidad = []
         
@@ -39,9 +58,16 @@ class ConfiguracionPSO:
             ])
         
         return limites_posicion, limites_velocidad
+   
     # metodo para mostrar la configuracion actual
     def mostrar_configuracion(self):
-        """Muestra la configuración actual"""
+        """
+        Funcion:
+            imprime en la consola un resumen de la configuracion actual del problema
+
+        Argumentos:
+            ninguno
+        """
         print("=== CONFIGURACIÓN DEL PROBLEMA ===")
         print(f"Numero de sensores: {self.NUM_SENSORES}")
         print(f"Dimensiones del problema: {self.DIMENSIONES}")

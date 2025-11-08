@@ -17,3 +17,6 @@ Repositorio de proyectos de la materia de Tópicos de IA
 ## Este proyecto se encuentran en la carpeta de la UNIDAD 3: 
 ### Proyecto de Optimización de Riego con Enjambre de Partículas: 
 - **Descripción:** Este proyecto se desarrolló aplicando el conocimiento del algoritmo bioinspirado PSO para la optimización de riego de cultivos. (Carpeta: PROYECTO CULTIVOS).
+
+### Pase para el examen unidad 3, código de Algoritmo Genético: 
+- **Descripción:** Este trabajo se realizó para comprender en funcionamiento del algoritmo genético. (Carpeta: ALGORITMO GN).

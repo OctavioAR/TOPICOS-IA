@@ -16,5 +16,5 @@ Este proyecto se enfoca en la aplicación de **Algoritmos Genéticos**, una téc
     ```bash
     python main.py
     ```
-## Cómo ejecutar el proyecto
+## Documentación del Código
 La documentación completa del proyecto se encuentra dentro del documento **ALGORITMO GENETICO.pdf**

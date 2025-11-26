@@ -1,0 +1,11 @@
+# Archivo de configuración de datos (YAML) para YOLOv8
+path: C:/Users/octav/TOPICOS-IA/UNIDAD 4/ModeloCNN/imagenes placas
+
+# Rutas relativas a 'path'
+train: train/images
+val: valid/images
+test: test/images
+
+# Número de clases y nombres
+nc: 1
+names: ['placas']

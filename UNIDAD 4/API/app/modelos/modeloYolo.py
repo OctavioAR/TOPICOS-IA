@@ -27,7 +27,7 @@ class DetectorPlacas:
 
         self.model_path = model_path or os.getenv("YOLO_MODEL_PATH") or str(default_model)
         self.model: YOLO | None = None
-        self.modelo_cargado = False
+        self.modeloCargado = False
 
     def cargarModelo(self) -> None:
         """
@@ -44,7 +44,7 @@ class DetectorPlacas:
             logger.info(f"Cargando modelo YOLO desde: {ruta}")
             # cargamos el modelo YOLO
             self.model = YOLO(str(ruta))
-            self.modelo_cargado = True
+            self.modeloCargado = True
             logger.info("Modelo YOLO cargado correctamente")
         except Exception as e:
             logger.error(f"Error cargando modelo: {e}")
@@ -60,7 +60,7 @@ class DetectorPlacas:
         Retorno: retorna una lista de direcciones con las detecciones realizadas.
         """
         # validar que el modelo fue cargado correctamente
-        if not self.modelo_cargado or self.model is None:
+        if not self.modeloCargado or self.model is None:
             raise RuntimeError("Modelo no cargado. Llama a cargarModelo")
         
         try:
@@ -90,6 +90,6 @@ class DetectorPlacas:
         
     # funcion para verificar si el modelo fue cargado
     def esta_cargado(self) -> bool:
-        return self.modelo_cargado
+        return self.modeloCargado
     
 detector = DetectorPlacas()

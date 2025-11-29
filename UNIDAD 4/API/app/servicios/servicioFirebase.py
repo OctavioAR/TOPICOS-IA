@@ -131,28 +131,28 @@ class FirebaseService:
         """
         
         # obtenermos los datos del vehiculo
-        vehiculo_data = vehiculoDatos.to_dict() or {}
+        vehiculoD = vehiculoDatos.to_dict() or {}
         
 
         # creamos un diccionario con los datos del vehiculo
         resultado = {
             "documento_id": vehiculoDatos.id,
             "matricula": vehiculoDatos.id,
-            "marca": vehiculo_data.get("marca"),
-            "modelo": vehiculo_data.get("modelo"),
-            "color": vehiculo_data.get("color"),
-            "año": vehiculo_data.get("año"),
-            "propietario_id": vehiculo_data.get("propietario_id"),
+            "marca": vehiculoD.get("marca"),
+            "modelo": vehiculoD.get("modelo"),
+            "color": vehiculoD.get("color"),
+            "año": vehiculoD.get("año"),
+            "propietario_id": vehiculoD.get("propietario_id"),
             "propietario": None 
         }
         # si existen los datos del propietario se añaden al diccionario resultado
         if propietarioDatos and propietarioDatos.exists:
-            propietario_data = propietarioDatos.to_dict() or {}
+            propietarioD = propietarioDatos.to_dict() or {}
             resultado["propietario"] = {
                 "id": propietarioDatos.id,
-                "nombre": propietario_data.get("nombre"),
-                "contacto": propietario_data.get("contacto"),
-                "telefono": propietario_data.get("telefono"),
+                "nombre": propietarioD.get("nombre"),
+                "contacto": propietarioD.get("contacto"),
+                "telefono": propietarioD.get("telefono"),
             }
         
         return resultado

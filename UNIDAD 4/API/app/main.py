@@ -63,19 +63,6 @@ async def startup_event():
         logger.error(f"Error al iniciar el servidor: {e}", exc_info=True)
         raise
 
-@app.get("/health")
-async def health_check():
-    """
-    Funcion: este endpoint se encarga de revisar el estado de los servicios 
-    y los modelos cargados.
-    """
-    return {
-        "status": "healthy",
-        "modelo_yolo_cargado": detector.modelo_cargado,
-        "ocr_disponible": servicioOcr is not None,
-        "firebase_conectado": servicioFirebase.db is not None
-    }
-
 @app.post("/detectar-placa")
 async def detectar_placa(imagen: UploadFile = File(...)):
     """

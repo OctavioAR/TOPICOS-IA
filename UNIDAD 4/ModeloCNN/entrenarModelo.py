@@ -21,13 +21,12 @@ def generarArchivoYaml():
         direcDividido = rutaDataset / dividir
         direcImg = direcDividido / 'images'
         direcEtiquetas = direcDividido / 'labels'
-        # verificar si existen las carpetas
+
         if not direcImg.exists():
             raise FileNotFoundError(f"No existe carpeta de imagenes: {direcImg}")
         if not direcEtiquetas.exists():
             raise FileNotFoundError(f"No existe carpeta de etiquetas: {direcEtiquetas}")
         
-        # verificar si las carpetas contienen archivos
         imagenes = list(direcImg.glob("*.jpg")) + list(direcImg.glob("*.png"))
         etiquetas = list(direcEtiquetas.glob("*.txt"))
         print(f"{dividir}: {len(imagenes)} imagenes, {len(etiquetas)} etiquetas")
@@ -82,11 +81,11 @@ def entrenarModelo():
     # parametros de entrenamiento del modelo CNN
     modeloYolo.train(
         data=str(nomArchivoYaml),
-        epochs=35,                      # numero de epocas
-        imgsz=640,                      # tamaño de imagenes
-        project=str(dirModelo),         # carpeta de guardado
+        epochs=35,                      
+        imgsz=640,                      
+        project=str(dirModelo),         
         name='entrenamiento_placas',
-        exist_ok=True                   # sobrescribir el directorio
+        exist_ok=True                   
     )
     
     rutaModelo = dirModelo / 'entrenamiento_placas' / 'weights' / 'best.pt'

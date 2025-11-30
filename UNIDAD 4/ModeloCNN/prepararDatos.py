@@ -30,7 +30,7 @@ def formatoYolo(fila):
     y_min = fila['y_min']
     x_max = fila['x_max']
     y_max = fila['y_max']
-    # recalcular las cordes
+ 
     x_centro_px = (x_min + x_max) / 2
     y_centro_px = (y_min + y_max) / 2
     ancho_caja_px = x_max - x_min
@@ -57,7 +57,6 @@ def genaerarArchivos():
     """
 
     print(f"Directorio base: {base_dir}")
-    # cilo for que recorre todas las divisiones
     for division, ruta_csv in rutasCsv.items():
         print(f"\nProcesando división: {division} ({ruta_csv})...")
         
@@ -68,11 +67,9 @@ def genaerarArchivos():
                 print(f"  Archivos CSV encontrados: {[p.name for p in alternativas]}")
             continue
         
-        # cargamos el DF actual
         df_actual = pd.read_csv(ruta_csv)
         df_actual.columns = ['nombre_archivo', 'ancho_imagen', 'altura_imagen', 'clase', 'x_min', 'y_min', 'x_max', 'y_max']
         
-        # mandamos a llamar a la funcion formatoYolo para cada fila
         columnas_yolo = ['indice_clase', 'x_centro', 'y_centro', 'ancho_norm', 'altura_norm']
         df_yolo = df_actual.apply(formatoYolo, axis=1)
         df_yolo.columns = columnas_yolo
@@ -88,7 +85,6 @@ def genaerarArchivos():
         for i, fila in df_anotaciones.iterrows():
             nombre_base = Path(fila['nombre_archivo']).stem
             
-            # linea de anotacion: "0 x_centro y_centro ancho_norm altura_norm"
             linea_anotacion = (
                 f"{int(fila['indice_clase'])} "
                 f"{fila['x_centro']:.6f} "

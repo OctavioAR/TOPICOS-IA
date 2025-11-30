@@ -97,13 +97,12 @@ class ProcesarOCR:
     def mejorar(self, imagen: np.ndarray) -> np.ndarray:
         """
         Funcion: metodo encargado de mejora el contraste de una 
-                imagen en escala de grises usando CLAHE
+                imagen en escala de grises
         Argumento:
             imagen: recibe una imagen en formato numpy ndarray en escala de grises
         Retorno: devuelve una imagen mejorada en escala de grises
         """
         gris = self.escalaGris(imagen)
-        # CLAHE es un metodo para mejorar el constraste de una img
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
         gris = clahe.apply(gris)
         return gris
@@ -119,14 +118,13 @@ class ProcesarOCR:
         """
         grisMejorada = self.mejorar(imagen)
         variantes = [grisMejorada]
-        # uso de metodo otsu para mejorar el contraste
         _, otsu = cv2.threshold(grisMejorada, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         variantes.append(otsu)
-        # metodo adaptativo para mejorar el contraste
+
         adaptativa = cv2.adaptiveThreshold(grisMejorada, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                      cv2.THRESH_BINARY, 15, 5)
         variantes.append(adaptativa)
-        # si el fondo es claro entonces invertirmo los colores
+
         if np.mean(otsu) > 180:
             variantes.append(255 - otsu)
         return variantes
@@ -145,10 +143,12 @@ class ProcesarOCR:
             return []
         rgb = cv2.cvtColor(imgGris, cv2.COLOR_GRAY2RGB)
         try:
-            # detail=0 devuelve solo cadenas de texto
             lineas = self.lector.readtext(rgb, detail=0, allowlist=permitidos)
-            # limpiamos las lineas de texto no alfanumericas
-            return [alfanumericos(l) for l in lineas if l and isinstance(l, str)]
+            lineas_limpias = []
+            for l in lineas:
+                if l and isinstance(l, str):
+                    lineas_limpias.append(alfanumericos(l))
+            return lineas_limpias
         except Exception as e:
             logger.debug(f"OCR fallo en variante: {e}")
             return []
@@ -171,13 +171,11 @@ class ProcesarOCR:
 
         # iterar sobre las expresiones regulares para encontrar coincidencias
         for patron in exprecionesRegulares:
-            # buscamos las coincidencias en el texto completo
             for coincidencia in patron.finditer(texto_completo):
                 candidatos.add(normalizarCoincidencia(coincidencia.group(0)))
 
         # buscamos tokens individuales que puedan ser placas
         tokens = [t for t in re.split(r'[\s-]+', texto_completo) if t]
-        # iteramos sobre los tokens para encontrar las  placas
         for token in tokens:
             token_limpio = re.sub(r'[^A-Z0-9]', '', token)
             if 5 <= len(token_limpio) <= 10 and re.search('[A-Z]', token_limpio) and re.search(r'\d', token_limpio):
@@ -196,9 +194,19 @@ class ProcesarOCR:
         """
         if not candidatos:
             return None
-        # ordenamos los candidaots en ornden descendente por puntuacion y longitud
-        candidatos.sort(key=lambda p: (puntuar(p), len(p)), reverse=True)
-        return candidatos[0] # optemos el mejor en indice 0
+        
+        # ordenamos los candidatos en orden descendente por puntuacion y longitud
+        for i in range(len(candidatos)):
+            for j in range(i + 1, len(candidatos)):
+                puntosI = puntuar(candidatos[i])
+                longitudI = len(candidatos[i])
+                puntosJ = puntuar(candidatos[j])
+                longitudJ = len(candidatos[j])
+
+                if (puntosJ > puntosI) or (puntosJ == puntosI and longitudJ > longitudI):
+                    candidatos[i], candidatos[j] = candidatos[j], candidatos[i]
+
+        return candidatos[0] 
 
     def procesarPlaca(self, imagenPlaca: np.ndarray) -> str:
         """
@@ -220,19 +228,21 @@ class ProcesarOCR:
                     continue
                 candidatosVariante = self.extraerCandidatos(lineas)
                 candidatos.update(candidatosVariante)
-                logger.info(f"[var{i}] lineas={lineas} - cand={list(candidatosVariante)}")
 
             # intento con la imagen completa en color si no encontro candidatos
             try:
                 rgbCompleta = cv2.cvtColor(imagenPlaca, cv2.COLOR_BGR2RGB) if imagenPlaca.ndim == 3 \
                            else cv2.cvtColor(imagenPlaca, cv2.COLOR_GRAY2RGB)
                 lineasCompletas = self.lector.readtext(rgbCompleta, detail=0, allowlist=permitidos)
-                lineasCompletas = [alfanumericos(l) for l in lineasCompletas if l]
+                lineas_limpias = []
+                for l in lineasCompletas:
+                    if l:
+                        lineas_limpias.append(alfanumericos(l))
+                lineasCompletas = lineas_limpias
                 candidatos.update(self.extraerCandidatos(lineasCompletas))
-                logger.info(f"[full] lineas={lineasCompletas}")
             except Exception:
                 pass
-            # si no hay cancidatos entonces devolvemos no texto
+
             if not candidatos:
                 return "NO TEXTO"
 
@@ -242,7 +252,7 @@ class ProcesarOCR:
         except Exception as e:
             logger.error(f"Error OCR: {e}", exc_info=True)
             return "ERROR OCR"
-# una unica instancia del procesador ocr
+
 instanciaOcr = None
 
 def obtenerProcesadorOcr():

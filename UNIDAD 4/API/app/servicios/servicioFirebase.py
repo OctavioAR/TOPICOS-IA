@@ -3,13 +3,12 @@ from firebase_admin import credentials, firestore
 import logging
 from pathlib import Path
 from typing import Dict, Any, List
-import difflib
 
 logger = logging.getLogger(__name__)
 # variables de las coleeciones de Firestore
 coleccionVehiculos = "Vehiculos"
 coleccionPropietarios = "Propietarios"
-# diccionario de confuciones del OCR
+
 diccionarioOcr = {
     '0': ['O', 'D', 'Q'],
     'O': ['0', 'Q', 'D'],
@@ -43,24 +42,30 @@ def similitud(a: str, b: str) -> float:
     Retorno: 
         numero float: retorna un numero decimal entre 0 y 1 indicando similitud.         
     """
-    # normaliza entradas a mayusculas
     a = (a or "").upper().strip()
     b = (b or "").upper().strip()
-    # tabla de traduccion para las confusiones
-    trans = str.maketrans({
-        "O": "0",
-        "I": "1",
-        "L": "1",
-        "Z": "2",
-        "S": "5",
-        "B": "8",
-    })
-    a2 = a.translate(trans)
-    b2 = b.translate(trans)
-    # calcula similitud base
-    base = difflib.SequenceMatcher(None, a, b).ratio()
-    alt = difflib.SequenceMatcher(None, a2, b2).ratio()
-    return max(base, alt)
+    
+    # si las longitudes son muy diferentes entonces baja similitud
+    if len(a) == 0 or len(b) == 0:
+        return 0.0
+    coincidencias = 0
+    longitud_max = max(len(a), len(b))
+
+    for i in range(min(len(a), len(b))):
+        if a[i] == b[i]:
+            coincidencias += 1
+        elif (a[i] == 'O' and b[i] == '0') or (a[i] == '0' and b[i] == 'O'):
+            coincidencias += 0.8 
+        elif (a[i] == 'I' and b[i] == '1') or (a[i] == '1' and b[i] == 'I'):
+            coincidencias += 0.8
+        elif (a[i] == 'S' and b[i] == '5') or (a[i] == '5' and b[i] == 'S'):
+            coincidencias += 0.8
+        elif (a[i] == 'B' and b[i] == '8') or (a[i] == '8' and b[i] == 'B'):
+            coincidencias += 0.8
+    
+    # porcentaje de similitud
+    similitud = coincidencias / longitud_max
+    return similitud
 
 
 def generarVariantes(prefijo: str, maxVariantes: int = 5) -> List[str]:
@@ -94,7 +99,6 @@ def generarVariantes(prefijo: str, maxVariantes: int = 5) -> List[str]:
             break
     # limita el num de varienates al max establecido
     resultado = list(variantes)[:maxVariantes]
-    logger.debug(f"Variantes generadas para '{prefijo}': {resultado}")
     return resultado
 
 
@@ -106,15 +110,13 @@ class FirebaseService:
     def __init__(self):
         """
         Funcion: constructor de la clase para inicializar la conexion con firebase
-        Argumento: no recibe nada.
-        Retorno: no retorna nada.
+
         """
         cred_path = Path(__file__).resolve().parent.parent.parent / "firebase-credentials.json"
         
         if not firebase_admin._apps:
             cred = credentials.Certificate(str(cred_path))
             firebase_admin.initialize_app(cred)
-            logger.info("Firebase inicializado")
         
         self.db = firestore.client()
 
@@ -130,11 +132,8 @@ class FirebaseService:
         Retorno: diccionario con los datos combinados del vehiculo y propietario.
         """
         
-        # obtenermos los datos del vehiculo
         vehiculoD = vehiculoDatos.to_dict() or {}
-        
 
-        # creamos un diccionario con los datos del vehiculo
         resultado = {
             "documento_id": vehiculoDatos.id,
             "matricula": vehiculoDatos.id,
@@ -166,22 +165,18 @@ class FirebaseService:
         Retorna: diccionario con los datos del vehiculo y propietario o en su lugar None 
                 si no encuentra nada.
         """
-        # verificamos si la BD esta disponible
         if not self.db:
-            logger.error("Firestore no está disponible.")
+            logger.error("Firestore no esta disponible.")
             return None
         placaDetectada = (placaDetectada or "").upper().strip()
         if not placaDetectada:
             return None
 
-        logger.info(f"Buscando en Firebase: {placaDetectada}")
         # primero hacemos busqueda por ID exacto
         try:
             vehiculo_doc_ref = self.db.collection(coleccionVehiculos).document(placaDetectada)
             vehiculoDoc = vehiculo_doc_ref.get()
-            # si encuentra por ID exacto, obtiene datos del propietario y retorna combinado
             if vehiculoDoc.exists:
-                logger.info(f"Vehiculo encontrado por ID exacto: {vehiculoDoc.id}")
                 propietarioId = (vehiculoDoc.to_dict() or {}).get("propietario_id")
                 propietarioDoc = None
                 if propietarioId:
@@ -195,25 +190,22 @@ class FirebaseService:
         if len(placaDetectada) >= 3:
             try:
                 prefijoOriginal = placaDetectada[:3]
-                # generar variantes del prefijo usando el diccionario OCR
                 variantesPrefijo = generarVariantes(prefijoOriginal, maxVariantes=8)
-                logger.info(f"Buscando por prefijos: {variantesPrefijo}")
                 
                 candidatosPrefijo = []
                 # itera sobre las variantes de prefijo generadas
                 for prefijo in variantesPrefijo:
                     try:
-                        # consulta firestore en los documentos que coincidan
                         query = (
                             self.db.collection(coleccionVehiculos)
                             .where(firestore.FieldPath.document_id(), ">=", prefijo)
                             .where(firestore.FieldPath.document_id(), "<", prefijo + "\uf8ff")
                             .limit(10) 
                         )
-                        # iteramos sobre los resultados obtenidos
+
                         for vehiculoDoc in query.stream():
                             matriculaReal = vehiculoDoc.id.upper().strip()
-                            # calculamos la similitud entre la placa detectada y la real
+                            #similitud entre la placa detectada y la real
                             sim = similitud(placaDetectada, matriculaReal)
                             
                             if sim >= 0.75:  
@@ -224,8 +216,12 @@ class FirebaseService:
                         continue
                 # si hay candidatos por prefijo seleccionamos el mejor
                 if candidatosPrefijo:
-                    # ordenamos con sort por similitud descendente
-                    candidatosPrefijo.sort(key=lambda t: t[0], reverse=True)
+                    # ordenamos por similitud descendente
+                    for i in range(len(candidatosPrefijo)):
+                        for j in range(i + 1, len(candidatosPrefijo)):
+                            if candidatosPrefijo[j][0] > candidatosPrefijo[i][0]:
+                                candidatosPrefijo[i], candidatosPrefijo[j] = candidatosPrefijo[j], candidatosPrefijo[i]
+                
                     sim, mejorVehiculo, matriculaReal, prefijoUsado = candidatosPrefijo[0]
                     
                     propietarioId = (mejorVehiculo.to_dict() or {}).get("propietario_id")
@@ -242,22 +238,23 @@ class FirebaseService:
                     return normalizado
                     
             except Exception as e:
-                logger.error(f"Error en búsqueda por prefijo: {e}", exc_info=True)
+                logger.error(f"Error en busqueda por prefijo: {e}", exc_info=True)
         
         # logica de busqueda por similitud global en caso de no encontrar por prefijo
         try:
             candidatos = []
-            # iteramos cobre todos los documentos de vehiculos
             for vehiculoDoc in self.db.collection(coleccionVehiculos).stream():
                 matriculaReal = vehiculoDoc.id.upper().strip()
 
                 sim = similitud(placaDetectada, matriculaReal)
                 if sim >= 0.85:  
                     candidatos.append((sim, vehiculoDoc, matriculaReal))
-            # si hay candidaos por similitud global seleccionamos el mejor
             if candidatos:
-                # ordenamos con sort por similitud descendente
-                candidatos.sort(key=lambda t: t[0], reverse=True)
+                for i in range(len(candidatos)):
+                    for j in range(i + 1, len(candidatos)):
+                        if candidatos[j][0] > candidatos[i][0]:
+                            candidatos[i], candidatos[j] = candidatos[j], candidatos[i]
+                
                 sim, mejorVehiculo, matriculaReal = candidatos[0]
 
                 propietarioId = (mejorVehiculo.to_dict() or {}).get("propietario_id")
@@ -278,5 +275,4 @@ class FirebaseService:
         except Exception as e:
             logger.error(f"Error en búsqueda por similitud: {e}", exc_info=True)
 
-        logger.warning(f"Placa '{placaDetectada}' no encontrada en Firebase")
         return None

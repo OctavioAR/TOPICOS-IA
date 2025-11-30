@@ -6,11 +6,11 @@ import io
 import cv2
 import numpy as np
 import logging
-# importamos los modulos y servicios 
+#modulos y servicios 
 from app.modelos.modeloYolo import DetectorPlacas
 from app.servicios.servicioOcr import obtenerProcesadorOcr
 from app.servicios.servicioFirebase import FirebaseService
-# config del logger para mostrar info en consola
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -78,17 +78,12 @@ async def detectar_placa(imagen: UploadFile = File(...)):
                 detail="El archivo debe ser una imagen (JPEG, PNG, etc.)"
             )
         
-        logger.info(f"Procesando imagen: {imagen.filename} ({imagen.content_type})")
-        # leemos la img y convertimos a formato openCV
         contenido = await imagen.read()
         imagen_pil = Image.open(io.BytesIO(contenido)).convert('RGB')
         imagen_np = np.array(imagen_pil)
         imagen_cv = cv2.cvtColor(imagen_np, cv2.COLOR_RGB2BGR)
         
-        logger.info(f"Tamaño imagen: {imagen_cv.shape}")
-        # mandamos a llamar a la funcion detectar placa de YOLO 
         detecciones = detector.detectar(imagen_cv)
-        # en caso de no detectar placa retornamos mensaje
         if not detecciones or len(detecciones) == 0:
             logger.warning("No se detectaron placas en la imagen")
             return JSONResponse(
@@ -106,7 +101,6 @@ async def detectar_placa(imagen: UploadFile = File(...)):
         
         logger.info(f"Detectadas {len(detecciones)} placa(s)")
         
-        # lista de todas las detecciones procesadas
         todasDetecciones = []
         
         # iteramos sobre cada deteccion encontrada
@@ -116,7 +110,6 @@ async def detectar_placa(imagen: UploadFile = File(...)):
                 x1, y1, x2, y2 = map(int, deteccion['bbox'])
                 confianzaDeteccion = float(deteccion.get('confidence', 0.0))
                 
-                logger.info(f"Procesando deteccion {i+1}: bbox={[x1,y1,x2,y2]}, conf={confianzaDeteccion:.2f}")
                 
                 placaRegion = imagen_cv[y1:y2, x1:x2]
                 
@@ -136,7 +129,6 @@ async def detectar_placa(imagen: UploadFile = File(...)):
                 corregidoBD = False
                 busqueda = "ocr_directo"
                 
-                # intentar corregir la placa usando la BD de firebase
                 if textoPlacaOcr and textoPlacaOcr not in ["ERROR OCR", "NO TEXTO", "NO FORMATO"]:
                     try:
                         datosVehiculo = servicioFirebase.buscarVehiculo(textoPlacaOcr)
@@ -150,10 +142,6 @@ async def detectar_placa(imagen: UploadFile = File(...)):
                                 busqueda = "similitud"
                                 
                                 similitud = datosVehiculo.get('_similitud', 0)
-                                logger.info(
-                                    f"Placa corregida: '{textoPlacaOcr}' - '{placaFinal}' "
-                                    f"(similitud: {similitud*100:.1f}%)"
-                                )
                             else:
                                 placaFinal = placa_real or textoPlacaOcr
                                 busqueda = "exacta"
@@ -163,7 +151,7 @@ async def detectar_placa(imagen: UploadFile = File(...)):
                             
                     except Exception as e:
                         logger.error(f"Error consultando Firebase: {e}", exc_info=True)
-                # resultados de la deteccion actual
+                        
                 deteccionResultado = {
                     "placa_ocr_original": textoPlacaOcr,
                     "placa_final": placaFinal,
@@ -182,7 +170,6 @@ async def detectar_placa(imagen: UploadFile = File(...)):
                     deteccionResultado["datos_vehiculo"] = datos_limpios
                 
                 todasDetecciones.append(deteccionResultado)
-                logger.info(f"Deteccion {i+1} procesada exitosamente")
                 
             except Exception as e:
                 logger.error(f"Error procesando deteccion {i+1}: {e}", exc_info=True)
@@ -197,28 +184,33 @@ async def detectar_placa(imagen: UploadFile = File(...)):
                     "detalle": "Todas las detecciones fallaron en el procesamiento"
                 }
             )
+        # seleccion de mejor deteccion 
+        mejorDeteccion = todasDetecciones[0]
+        mejorPrioridadDatos = 1 if mejorDeteccion.get('datos_vehiculo') else 0
+        mejorconfianza = mejorDeteccion['confianza_deteccion']
         
-        mejor_deteccion = max(
-            todasDetecciones,
-            key=lambda x: (
-                1 if x.get('datos_vehiculo') else 0,
-                x['confianza_deteccion']
-            )
-        )
+        for deteccion in todasDetecciones:
+            prioridadDatos = 1 if deteccion.get('datos_vehiculo') else 0
+            confianza = deteccion['confianza_deteccion']
+            
+            if (prioridadDatos > mejorPrioridadDatos) or \
+               (prioridadDatos == mejorPrioridadDatos and confianza > mejorconfianza):
+                mejorDeteccion = deteccion
+                mejorPrioridadDatos = prioridadDatos
+                mejorconfianza = confianza
         
-        logger.info(f"Mejor deteccion: {mejor_deteccion['placa_final']}")
         # retornamos la mejor deteccion encontrada en formato JSON
         return JSONResponse(
             status_code=200,
             content={
                 "estado": "exito",
-                "placa": mejor_deteccion['placa_final'],
-                "confianza": mejor_deteccion['confianza_deteccion'],
-                "bbox": mejor_deteccion['bbox'],
-                "corregido": mejor_deteccion['corregido_por_db'],
-                "metodo": mejor_deteccion['metodo_busqueda'],
-                "placa_ocr": mejor_deteccion['placa_ocr_original'],
-                "datos_vehiculo": mejor_deteccion.get('datos_vehiculo'),
+                "placa": mejorDeteccion['placa_final'],
+                "confianza": mejorDeteccion['confianza_deteccion'],
+                "bbox": mejorDeteccion['bbox'],
+                "corregido": mejorDeteccion['corregido_por_db'],
+                "metodo": mejorDeteccion['metodo_busqueda'],
+                "placa_ocr": mejorDeteccion['placa_ocr_original'],
+                "datos_vehiculo": mejorDeteccion.get('datos_vehiculo'),
                 "todas_detecciones": todasDetecciones,
                 "total_detecciones": len(todasDetecciones)
             }
@@ -227,7 +219,7 @@ async def detectar_placa(imagen: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error critico procesando imagen: {e}", exc_info=True)
+        logger.error(f"Error procesando imagen: {e}", exc_info=True)
         return JSONResponse(
             status_code=500,
             content={

@@ -36,13 +36,11 @@ class DetectorPlacas:
         Argumentos: no recibe argumentos.
         Retorno: no retorna nada.
         """
-        # manejo de errores
         try: 
             ruta = Path(self.model_path)
             if not ruta.exists():
                 raise FileNotFoundError(f"Modelo no encontrado en: {ruta}")
-            logger.info(f"Cargando modelo YOLO desde: {ruta}")
-            # cargamos el modelo YOLO
+
             self.model = YOLO(str(ruta))
             self.modeloCargado = True
             logger.info("Modelo YOLO cargado correctamente")

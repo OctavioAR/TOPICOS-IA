@@ -20,3 +20,7 @@ Repositorio de proyectos de la materia de Tópicos de IA
 
 ### Pase para el examen unidad 3, código de Algoritmo Genético: 
 - **Descripción:** Este trabajo se realizó para comprender en funcionamiento del algoritmo genético. (Carpeta: ALGORITMO GN).
+
+## Este proyecto se encuentran en la carpeta de la UNIDAD 4: 
+### Proyecto de Detección de Placas Vehiculares: 
+- **Descripción:** Este proyecto se desarrolló con el objetivo de entrenar un modelo de red neuronal capaz de detectar placas vehiculares. (Carpetas: API, DetectorPlacas y ModeloCNN).

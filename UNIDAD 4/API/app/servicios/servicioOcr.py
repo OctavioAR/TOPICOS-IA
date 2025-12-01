@@ -72,15 +72,7 @@ def puntuar(placa: str) -> int:
 
 
 class ProcesarOCR:
-    """
-    Clase encargada de procesar las imagenes de placas usando EasyOCR
-    """
     def __init__(self):
-        """
-        Funcion: metodo constructor de la clase, el cual inicializa el lector de EasyOCR
-        Argumentos: ninguno
-        Retorno: nada
-        """
         self.lector = None
         self.lector = easyocr.Reader(['en', 'es'], gpu=False)
 

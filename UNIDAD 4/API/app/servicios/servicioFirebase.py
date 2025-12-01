@@ -108,10 +108,6 @@ class FirebaseService:
     La clase realiza las consultas y operacioens con Firebase/firestore
     """
     def __init__(self):
-        """
-        Funcion: constructor de la clase para inicializar la conexion con firebase
-
-        """
         cred_path = Path(__file__).resolve().parent.parent.parent / "firebase-credentials.json"
         
         if not firebase_admin._apps:

@@ -16,7 +16,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-# inicializamos la app de fastapi
 app = FastAPI(
     title="API placas vehiculares",
     description="proyecto topicos IA",

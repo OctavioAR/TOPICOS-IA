@@ -104,9 +104,6 @@ def generarVariantes(prefijo: str, maxVariantes: int = 5) -> List[str]:
 
 
 class FirebaseService:
-    """
-    La clase realiza las consultas y operacioens con Firebase/firestore
-    """
     def __init__(self):
         cred_path = Path(__file__).resolve().parent.parent.parent / "firebase-credentials.json"
         

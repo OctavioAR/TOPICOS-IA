@@ -9,10 +9,6 @@ from ultralytics import YOLO
 logger = logging.getLogger(__name__)
 
 class DetectorPlacas:
-    """
-    Clase que permite cargar el modelo YOLO y poder realizar las detecciones
-    de las placas en imagenes.
-    """
     def __init__(self, model_path: str | None = None):
         """
         Funcion: metodo constructor de la clase el cual recibe la 
@@ -57,7 +53,6 @@ class DetectorPlacas:
             nivelConfianza float: variable que tiene el porcentaje de confianza de la deteccion.
         Retorno: retorna una lista de direcciones con las detecciones realizadas.
         """
-        # validar que el modelo fue cargado correctamente
         if not self.modeloCargado or self.model is None:
             raise RuntimeError("Modelo no cargado. Llama a cargarModelo")
         
@@ -86,7 +81,6 @@ class DetectorPlacas:
             logger.error(f"Error en detección YOLO: {e}")
             return []
         
-    # funcion para verificar si el modelo fue cargado
     def esta_cargado(self) -> bool:
         return self.modeloCargado
     
